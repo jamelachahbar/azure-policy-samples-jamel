@@ -19,6 +19,10 @@
                   {
                      "field": "Microsoft.SQL/servers/databases/requestedServiceObjectiveName",
                      "in": "[parameters('listOfSKUName')]"
+                  },
+                  {
+                     "field": "Microsoft.SQL/servers/databases/sku.name",
+                     "in": "[parameters('listOfSKUName')]"
                   }
                ]
             }

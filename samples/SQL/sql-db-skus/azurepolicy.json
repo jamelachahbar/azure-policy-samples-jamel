@@ -1,7 +1,7 @@
 {
    "properties": {
-      "displayName": "Allowed SQL DB SKUs",
-      "description": "This policy enables you to specify a set of SQL DB SKUs",
+      "displayName": "Allowed Azure SQL DB SKUs",
+      "description": "This policy enables you to specify a set of Azure SQL DB SKUs",
       "parameters": {
          "listOfSKUId": {
             "type": "Array",
@@ -38,6 +38,10 @@
                         },
                         {
                            "field": "Microsoft.SQL/servers/databases/requestedServiceObjectiveName",
+                           "in": "[parameters('listOfSKUName')]"
+                        },
+                        {
+                           "field": "Microsoft.SQL/servers/databases/sku.name",
                            "in": "[parameters('listOfSKUName')]"
                         }
                      ]
