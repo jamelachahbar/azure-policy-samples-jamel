@@ -18,6 +18,7 @@ $definition
 ````powershell
 # Example: Allow only Basic and Standard S0-S2 (see Sample Parameters section below for more examples)
 $assignment = New-AzPolicyAssignment -Name <assignmentname> -Scope <scope> -PolicyDefinition $definition -PolicyParameter @{
+    effect = "Deny"  # Use "Audit" to log non-compliance without blocking, "Disabled" to turn off
     listOfSKUName = @("Basic", "S0", "S1", "S2")
     listOfSKUId = @()
 }
@@ -35,13 +36,13 @@ az policy definition create --name 'sql-db-skus' --display-name 'Allowed SQL DB 
 
 **Assign the policy with parameters (Example 1: Basic and Standard S0-S2):**
 ````cli
-az policy assignment create --name 'sql-db-skus-assignment' --scope '<scope>' --policy "sql-db-skus" --params "{'listOfSKUName':{'value':['Basic','S0','S1','S2']}, 'listOfSKUId':{'value':[]}}"
+az policy assignment create --name 'sql-db-skus-assignment' --scope '<scope>' --policy "sql-db-skus" --params "{'effect':{'value':'Deny'}, 'listOfSKUName':{'value':['Basic','S0','S1','S2']}, 'listOfSKUId':{'value':[]}}"
 ````
 
 **Update an existing assignment with new parameters:**
 ````cli
 # Example: Change to allow DTU Standard + vCore General Purpose (Example 8)
-az policy assignment create --name 'sql-db-skus-assignment' --scope '<scope>' --policy "sql-db-skus" --params "{'listOfSKUName':{'value':['S0','S1','S2','S3','GP_Gen5_2','GP_Gen5_4','GP_Gen5_8']}, 'listOfSKUId':{'value':[]}}"
+az policy assignment create --name 'sql-db-skus-assignment' --scope '<scope>' --policy "sql-db-skus" --params "{'effect':{'value':'Deny'}, 'listOfSKUName':{'value':['S0','S1','S2','S3','GP_Gen5_2','GP_Gen5_4','GP_Gen5_8']}, 'listOfSKUId':{'value':[]}}"
 ````
 
 **Common scope examples:**
@@ -95,6 +96,9 @@ Use case: Development and test environments
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": ["Basic", "S0", "S1", "S2"]
     },
@@ -110,6 +114,9 @@ Use case: Production workloads with controlled costs
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": ["S0", "S1", "S2", "S3", "S4", "S6", "S7", "S9", "S12"]
     },
@@ -125,6 +132,9 @@ Use case: Mission-critical OLTP applications requiring low latency
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": ["P1", "P2", "P4", "P6", "P11", "P15"]
     },
@@ -140,6 +150,9 @@ Use case: Modern applications using vCore model with controlled compute sizes
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": [
             "GP_Gen5_2", "GP_Gen5_4", "GP_Gen5_6", "GP_Gen5_8", 
@@ -158,6 +171,9 @@ Use case: Production workloads with flexibility between performance tiers
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": [
             "GP_Gen5_2", "GP_Gen5_4", "GP_Gen5_8", 
@@ -176,6 +192,9 @@ Use case: Applications requiring rapid scaling and large storage capacity (10 GB
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": [
             "HS_Gen5_2", "HS_Gen5_4", "HS_Gen5_8", "HS_Gen5_16", 
@@ -194,6 +213,9 @@ Use case: Intermittent or unpredictable usage patterns with auto-pause capabilit
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": [
             "GP_S_Gen5_1", "GP_S_Gen5_2", "GP_S_Gen5_4", 
@@ -212,6 +234,9 @@ Use case: Organization transitioning from DTU to vCore model
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": [
             "S0", "S1", "S2", "S3",
@@ -230,6 +255,9 @@ Use case: When you need to specify exact SKU GUIDs for compliance reasons
 
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": []
     },
@@ -242,6 +270,24 @@ Use case: When you need to specify exact SKU GUIDs for compliance reasons
 }
 ```
 
+### Example 10: Audit mode (report only, don't block)
+
+Use case: Assess current SKU usage before enforcing restrictions
+
+```json
+{
+    "effect": {
+        "value": "Audit"
+    },
+    "listOfSKUName": {
+        "value": ["Basic", "S0", "S1", "S2"]
+    },
+    "listOfSKUId": {
+        "value": []
+    }
+}
+```
+
 ### How to Apply Parameters
 
 **Method 1: Using Azure CLI**
@@ -249,14 +295,15 @@ Use case: When you need to specify exact SKU GUIDs for compliance reasons
 # Create or update assignment with specific parameters
 az policy assignment create \
   --name 'sql-db-skus-assignment' \
-  --scope '/subscriptions/{subscription-id}' \
+  --scope '/subscriptions/{sub-id}' \
   --policy 'sql-db-skus' \
-  --params "{'listOfSKUName':{'value':['S0','S1','S2','S3','GP_Gen5_2','GP_Gen5_4','GP_Gen5_8']}, 'listOfSKUId':{'value':[]}}"
+  --params "{'effect':{'value':'Deny'}, 'listOfSKUName':{'value':['S0','S1','S2']}, 'listOfSKUId':{'value':[]}}"
 ```
 
 **Method 2: Using Azure PowerShell**
 ```powershell
 $params = @{
+    effect = "Deny"
     listOfSKUName = @("S0", "S1", "S2", "S3", "GP_Gen5_2", "GP_Gen5_4", "GP_Gen5_8")
     listOfSKUId = @()
 }
@@ -268,6 +315,9 @@ New-AzPolicyAssignment -Name 'sql-db-skus-assignment' -Scope '/subscriptions/{su
 Create a file `params.json`:
 ```json
 {
+    "effect": {
+        "value": "Deny"
+    },
     "listOfSKUName": {
         "value": ["S0", "S1", "S2", "S3", "GP_Gen5_2", "GP_Gen5_4", "GP_Gen5_8"]
     },
@@ -285,11 +335,14 @@ az policy assignment create --name 'sql-db-skus-assignment' --scope '/subscripti
 **Method 4: Using Azure Portal**
 1. Navigate to **Azure Policy** → **Assignments** → **Assign policy**
 2. Select the policy definition "Allowed SQL DB SKUs"
-3. Under **Parameters**, enter the allowed SKU names as comma-separated values
+3. Under **Parameters**:
+   - **Effect**: Choose "Deny" (block), "Audit" (report only), or "Disabled"
+   - Enter the allowed SKU names as comma-separated values
 4. Click **Review + create**
 
 ### Best Practices
 
+- **Start with Audit**: Use `"effect": "Audit"` initially to assess current SKU usage without blocking deployments, then switch to `"Deny"` for enforcement
 - **Use SKU Names**: For most scenarios, using SKU names (e.g., "S0", "GP_Gen5_4") is simpler and more maintainable than GUIDs
 - **Combine Parameters**: The policy allows databases matching **either** SKU names or IDs (OR logic), providing flexibility
 - **Consider Workloads**: 

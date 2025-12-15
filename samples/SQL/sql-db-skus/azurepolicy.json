@@ -3,6 +3,19 @@
       "displayName": "Allowed Azure SQL DB SKUs",
       "description": "This policy enables you to specify a set of Azure SQL DB SKUs",
       "parameters": {
+         "effect": {
+            "type": "String",
+            "metadata": {
+               "displayName": "Effect",
+               "description": "The effect determines what happens when the policy rule is evaluated to match"
+            },
+            "allowedValues": [
+               "Audit",
+               "Deny",
+               "Disabled"
+            ],
+            "defaultValue": "Deny"
+         },
          "listOfSKUId": {
             "type": "Array",
             "metadata": {
@@ -50,7 +63,7 @@
             ]
          },
          "then": {
-            "effect": "Deny"
+            "effect": "[parameters('effect')]"
          }
       }
    }
